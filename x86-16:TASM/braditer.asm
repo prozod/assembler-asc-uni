@@ -2,9 +2,6 @@
 .stack 100h 
    
 .code
-    mov ax,@data 
-    mov ds,ax 
-
     mov di,5
     mov cx,0 
 
