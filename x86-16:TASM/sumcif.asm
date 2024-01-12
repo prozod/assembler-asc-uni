@@ -1,66 +1,80 @@
 .model small
 .stack 100h
 .data
-    msg db 13,10,'Introdu un numar: $'
-    result_msg db 13,10,'Suma cifrelor: $'
+    input_msg   DB  'Introdu un numar (max. 2 cifre): $'
+    sum_msg     DB  13, 10, 'Suma cifrelor este: $'
+    sum         DW  ?
 
 .code
-    mov ax, @data
-    mov ds, ax
+  mov ax, @data
+  mov ds, ax
+  
+  lea dx,input_msg 
+  call display_message
 
-    lea dx, msg
-    call load_and_print 
+  call read_character
+  sub al, '0'
+  mov bl, al
+  call read_character
+  sub al, '0'
+  mov cl, al
+  
+  lea dx,sum_msg
+  call display_message
 
-    call read_and_compare
-    je  negative
+  add cl, bl
 
-    sub al, '0'
-    jmp  continue
+  cmp cl, 9
+  jbe below_10
 
-negative:
-    mov ah, 01h
-    int 21h
-    sub al, '0'
-    neg al
-
-continue:
-    call sum
-
-    lea dx, result_msg
-    call load_and_print 
-
-    mov ah, 02h
-    mov dl, bl
-    add dl, '0'
-    int 21h
-
+  call above_10
+  call terminate
+ 
+  below_10:
+    mov ah, 0
+    add cl, '0'
+    mov dl, cl
+    call display_result
     call terminate
 
-load_and_print proc text
-    mov ah, 09h
-    mov dx, [text]
-    int 21h
-    ret
-load_and_print endp
+  display_message proc
+      mov ah, 09h
+      int 21h
+      ret
+  display_message endp
 
-read_and_compare proc
-    mov ah, 01h
-    int 21h
-    cmp al, '-'
-    ret
-read_and_compare endp
+  display_result proc
+      mov ah, 02h
+      int 21h
+      ret
+  display_result endp
 
-sum proc
-    mov bl, al
-    int 21h
-    sub al, '0'
-    add bl, al
-    ret
-sum endp
+  read_character proc
+      mov ah, 01h
+      int 21h
+      ret
+  read_character endp
 
-terminate proc
+  terminate proc
     mov ah, 4Ch
     int 21h
-terminate endp
+  terminate endp
 
+  above_10 proc
+    mov ch, 0
+    mov ax, cx 
+    mov dx, 0
+    mov bx, 10 
+    div bx
+
+    mov bx, dx
+    add al, '0'
+    mov dl, al 
+    call display_result
+
+    add bl, '0'
+    mov dl, bl
+    call display_result
+    ret
+  above_10 endp
 end
